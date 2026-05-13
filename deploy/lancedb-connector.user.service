@@ -1,0 +1,19 @@
+[Unit]
+Description=LanceDB Connector (LanceDB OSS HTTP API)
+Documentation=https://github.com/spikeon/lancedb-connector
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/Dev/lancedb-connector
+ExecStart=/usr/bin/node %h/Dev/lancedb-connector/dist/main.js
+Restart=on-failure
+RestartSec=5
+Environment=NODE_ENV=production
+
+# Optional KEY=value pairs (same format as .env). Minus prefix = ignore if missing.
+EnvironmentFile=-%h/Dev/lancedb-connector/.env
+
+[Install]
+WantedBy=default.target
