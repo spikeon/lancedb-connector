@@ -117,3 +117,16 @@ export async function scanQuery(
   return q.limit(limit).toArray();
 }
 
+export async function upsertRows(
+  table: Table,
+  params: { on: string | string[]; rows: Record<string, unknown>[] },
+): Promise<{ version: number }> {
+  if (!params.rows.length) throw new HttpError(400, "rows must be non-empty");
+  const result = await table
+    .mergeInsert(params.on)
+    .whenMatchedUpdateAll()
+    .whenNotMatchedInsertAll()
+    .execute(params.rows);
+  return { version: result.version };
+}
+

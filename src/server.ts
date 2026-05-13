@@ -14,6 +14,7 @@ import {
   requireRole,
   scanQuery,
   tableSchema,
+  upsertRows,
   vectorSearch,
 } from "./lancedb-ops.js";
 import { authenticateRequest, sendUnauthorized } from "./auth-http.js";
@@ -321,6 +322,48 @@ export async function buildServer(
       const conn = await getConnection(config);
       const table = await openTable(conn, request.params.name);
       return addRows(table, request.body.rows, request.body.mode);
+    },
+  );
+
+  app.post<{
+    Params: { name: string };
+    Body: { on: string | string[]; rows: Record<string, unknown>[] };
+  }>(
+    "/v1/tables/:name/upsert",
+    {
+      config: { minRole: "write" },
+      schema: {
+        security: [{ basicAuth: [] }],
+        tags: ["data"],
+        summary: "Upsert rows (merge insert on key column)",
+        params: {
+          type: "object",
+          properties: { name: { type: "string" } },
+          required: ["name"],
+        },
+        body: {
+          type: "object",
+          required: ["on", "rows"],
+          properties: {
+            on: {
+              oneOf: [
+                { type: "string" },
+                { type: "array", items: { type: "string" } },
+              ],
+              description: "Column name(s) to match on for upsert",
+            },
+            rows: {
+              type: "array",
+              items: { type: "object", additionalProperties: true },
+            },
+          },
+        },
+      },
+    },
+    async (request) => {
+      const conn = await getConnection(config);
+      const table = await openTable(conn, request.params.name);
+      return upsertRows(table, request.body);
     },
   );
 
