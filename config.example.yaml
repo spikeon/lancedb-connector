@@ -1,0 +1,27 @@
+server:
+  host: "0.0.0.0"
+  port: 3030
+
+lancedb:
+  # Local directory (created automatically) or cloud URI — see LanceDB docs.
+  uri: "./data/lancedb"
+
+auth:
+  enabled: false
+  # If auth.enabled is true and this is true, /documentation stays reachable without credentials.
+  exposeDocsWithoutAuth: false
+  users:
+    # Example readonly user with bcrypt hash (generate with Node: bcrypt.hashSync('secret', 10))
+    # - username: "readonly"
+    #   passwordHash: "$2b$10$..."
+    #   roles: ["read"]
+    #
+    # Example writer (plaintext password — development only; prefer passwordHash in production)
+    # - username: "writer"
+    #   password: "dev-password-change-me"
+    #   roles: ["read", "write"]
+    #
+    # Example admin (required for DELETE /v1/tables/:name)
+    # - username: "admin"
+    #   passwordHash: "$2b$10$..."
+    #   roles: ["read", "write", "admin"]
