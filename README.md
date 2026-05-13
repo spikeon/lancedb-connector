@@ -113,6 +113,42 @@ CONNECTOR_CONFIG_PATH=/absolute/path/to/config.yaml node dist/mcp-server.js
 
 Registered tools: `list_tables`, `create_table`, `drop_table`, `describe_table`, `table_row_count`, `add_rows`, `delete_rows`, `vector_search`, `scan_query`.
 
+## systemd (user service)
+
+Run the HTTP API under your login session with a **user** unit (no root needed). A template ships at **`deploy/lancedb-connector.user.service`**; it assumes the repo lives at **`~/Dev/lancedb-connector`** (`systemd` expands `%h` to your home directory). Adjust **`WorkingDirectory`** and **`ExecStart`** paths in the unit if your checkout is elsewhere.
+
+```bash
+mkdir -p ~/.config/systemd/user
+cp deploy/lancedb-connector.user.service ~/.config/systemd/user/lancedb-connector.service
+# Edit paths in ~/.config/systemd/user/lancedb-connector.service if needed
+
+npm ci && npm run build
+systemctl --user daemon-reload
+systemctl --user enable --now lancedb-connector.service
+```
+
+Useful commands:
+
+```bash
+systemctl --user status lancedb-connector.service
+journalctl --user -u lancedb-connector.service -f
+systemctl --user restart lancedb-connector.service
+```
+
+After **`git pull`** or TypeScript changes, rebuild and restart:
+
+```bash
+npm ci && npm run build && systemctl --user restart lancedb-connector.service
+```
+
+The unit optionally loads **`EnvironmentFile=-%h/Dev/lancedb-connector/.env`** (same `KEY=value` style as dotenv). Variables such as **`PORT`**, **`LANCEDB_URI`**, or **`CONNECTOR_CONFIG_PATH`** can live there or in `config.yaml`.
+
+User services stop when your session ends unless **lingering** is enabled. To have enabled user services start at boot even when you are not logged in at a seat:
+
+```bash
+sudo loginctl enable-linger "$USER"
+```
+
 ## Docker
 
 ```bash
@@ -143,6 +179,7 @@ docker run --rm -p 3030:3030 \
 | `src/lancedb-ops.ts` | Shared LanceDB operations |
 | `src/config.ts` | YAML + env loading |
 | `config.example.yaml` | Sample configuration |
+| `deploy/lancedb-connector.user.service` | systemd user unit template |
 
 ## License
 
